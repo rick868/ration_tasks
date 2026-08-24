@@ -48,6 +48,7 @@ interface WorkspaceContextType {
   toggleOfflineSimulation: () => void;
   refreshPages: () => Promise<void>;
   refreshTrash: () => Promise<void>;
+  emptyTrash: () => Promise<void>;
   instantiateTemplate: (templateType: string) => Promise<Page>;
 }
 
@@ -285,23 +286,59 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const deletePage = useCallback(
     async (id: string, softDelete = true) => {
-      await pageRepo.delete(id, softDelete);
-      await refreshPages();
-      await refreshTrash();
+      // 1. Immediately purge memory state for instant reactivity
+      setTrashPages((prev) => prev.filter((p) => p.id !== id));
+      setPages((prev) => prev.filter((p) => p.id !== id));
 
-      // If active page was deleted, switch to next available page
+      // 2. If the active page is being deleted, reset active state in memory and storage
       if (activePageId === id) {
         const remaining = pages.filter((p) => p.id !== id);
         if (remaining.length > 0) {
           setActivePageId(remaining[0].id);
+          if (workspace) {
+            try {
+              localStorage.setItem(`ration_active_${workspace.id}`, remaining[0].id);
+            } catch {
+              // ignore
+            }
+          }
         } else {
           setActivePageId(null);
+          setActiveBlocks([]);
+          if (workspace) {
+            try {
+              localStorage.removeItem(`ration_active_${workspace.id}`);
+            } catch {
+              // ignore
+            }
+          }
         }
       }
+
+      // 3. Complete deletion in persistent storage (IndexedDB)
+      await pageRepo.delete(id, softDelete);
+
+      // 4. Re-sync memory states with database
+      await refreshPages();
+      await refreshTrash();
       refreshSyncQueue();
     },
-    [activePageId, pages, refreshPages, refreshTrash, refreshSyncQueue]
+    [activePageId, pages, workspace, refreshPages, refreshTrash, refreshSyncQueue]
   );
+
+  const emptyTrash = useCallback(async () => {
+    if (!workspace) return;
+    // 1. Clear memory state immediately
+    setTrashPages([]);
+    
+    // 2. Perform complete deletion of all trash items in storage
+    await pageRepo.emptyTrash(workspace.id);
+
+    // 3. Re-sync memory states
+    await refreshTrash();
+    await refreshPages();
+    refreshSyncQueue();
+  }, [workspace, refreshTrash, refreshPages, refreshSyncQueue]);
 
   const restorePage = useCallback(
     async (id: string) => {
@@ -510,6 +547,7 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
         toggleOfflineSimulation,
         refreshPages,
         refreshTrash,
+        emptyTrash,
         instantiateTemplate,
       }}
     >

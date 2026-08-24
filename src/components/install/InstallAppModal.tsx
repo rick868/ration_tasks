@@ -37,6 +37,10 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({ isOpen, onClos
     const res = await triggerInstall();
     if (res === 'accepted') {
       onClose();
+    } else if (res === 'unsupported') {
+      setDownloadMsg(
+        'Please click the Install icon (⊕) on the right side of your browser address bar or use your browser menu to install.'
+      );
     }
   };
 
@@ -97,18 +101,16 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({ isOpen, onClos
 
             {isInstalled ? (
               <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                <CheckCircle2 className="h-4 w-4" /> Installed
+                <CheckCircle2 className="h-4 w-4" /> Installed (Standalone Mode)
               </div>
-            ) : isInstallable ? (
-              <button
-                onClick={handleInstallClick}
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#5a5a40] dark:bg-[#8c8c6d] px-4 py-2 text-xs font-semibold text-white dark:text-[#1c1c1a] hover:bg-[#444430] dark:hover:bg-[#a4a485] transition-all shadow-sm"
-              >
-                <Download className="h-3.5 w-3.5" /> Install App Now
-              </button>
             ) : (
-              <div className="text-[11px] text-[#5a5a40] dark:text-[#a4a485] font-medium bg-[#ecece4] dark:bg-[#2c2c28] px-3 py-1.5 rounded-lg border border-[#dadad0] dark:border-[#3c3c34]">
-                See instructions below
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handleInstallClick}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#5a5a40] dark:bg-[#8c8c6d] px-4 py-2 text-xs font-semibold text-white dark:text-[#1c1c1a] hover:bg-[#444430] dark:hover:bg-[#a4a485] transition-all shadow-sm active:scale-95"
+                >
+                  <Download className="h-3.5 w-3.5" /> Install App Now
+                </button>
               </div>
             )}
           </div>

@@ -10,6 +10,7 @@ import {
   SearchResult,
   Workspace,
 } from '../types';
+import { FileStorageManager } from './fileManager';
 
 export class PageRepository {
   async getById(id: string): Promise<Page | null> {
@@ -96,8 +97,8 @@ export class PageRepository {
 
   async delete(id: string, softDelete = true): Promise<void> {
     const now = Date.now();
-    await db.transaction('rw', [db.pages, db.blocks, db.syncQueue], async () => {
-      if (softDelete) {
+    if (softDelete) {
+      await db.transaction('rw', [db.pages, db.syncQueue], async () => {
         await db.pages.update(id, { deletedAt: now, isArchived: true, updatedAt: now });
         await db.syncQueue.add({
           id: crypto.randomUUID(),
@@ -111,24 +112,77 @@ export class PageRepository {
           createdAt: now,
           updatedAt: now,
         });
-      } else {
-        // Cascade delete blocks and subpages
-        await db.blocks.where('pageId').equals(id).delete();
-        await db.pages.delete(id);
-        await db.syncQueue.add({
-          id: crypto.randomUUID(),
-          entityType: 'pages',
-          entityId: id,
-          operation: 'DELETE',
-          payloadJson: JSON.stringify({ id }),
-          attempts: 0,
-          status: 'PENDING',
-          lastError: null,
-          createdAt: now,
-          updatedAt: now,
-        });
-      }
-    });
+      });
+    } else {
+      // Find all nested subpages recursively to ensure 100% complete removal
+      const allSubpageIds: string[] = [id];
+      const findChildren = async (parentId: string) => {
+        const children = await db.pages.where('parentId').equals(parentId).toArray();
+        for (const child of children) {
+          if (!allSubpageIds.includes(child.id)) {
+            allSubpageIds.push(child.id);
+            await findChildren(child.id);
+          }
+        }
+      };
+      await findChildren(id);
+
+      // First trigger filesystem-level attachments and binary blob cleanup
+      await FileStorageManager.purgePageAttachments(allSubpageIds);
+
+      await db.transaction(
+        'rw',
+        [
+          db.pages,
+          db.blocks,
+          db.databases,
+          db.databaseProperties,
+          db.databaseRows,
+          db.databaseViews,
+          db.tasks,
+          db.files,
+          db.pageHistory,
+          db.syncQueue,
+        ],
+        async () => {
+          for (const pageId of allSubpageIds) {
+            // Find and delete linked databases and their metadata
+            const dbs = await db.databases.where('pageId').equals(pageId).toArray();
+            for (const d of dbs) {
+              await db.databaseProperties.where('databaseId').equals(d.id).delete();
+              await db.databaseRows.where('databaseId').equals(d.id).delete();
+              await db.databaseViews.where('databaseId').equals(d.id).delete();
+            }
+            await db.databases.where('pageId').equals(pageId).delete();
+            await db.databaseRows.where('pageId').equals(pageId).delete();
+            await db.blocks.where('pageId').equals(pageId).delete();
+            await db.pageHistory.where('pageId').equals(pageId).delete();
+            await db.tasks.where('pageId').equals(pageId).delete();
+            await db.pages.delete(pageId);
+
+            await db.syncQueue.add({
+              id: crypto.randomUUID(),
+              entityType: 'pages',
+              entityId: pageId,
+              operation: 'DELETE',
+              payloadJson: JSON.stringify({ id: pageId }),
+              attempts: 0,
+              status: 'PENDING',
+              lastError: null,
+              createdAt: now,
+              updatedAt: now,
+            });
+          }
+        }
+      );
+    }
+  }
+
+  async emptyTrash(workspaceId: string): Promise<void> {
+    const trash = await this.listTrash(workspaceId);
+    for (const page of trash) {
+      await this.delete(page.id, false);
+    }
   }
 
   async restore(id: string): Promise<void> {

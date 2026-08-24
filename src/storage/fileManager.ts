@@ -68,6 +68,59 @@ export class FileStorageManager {
     await db.files.delete(fileId);
   }
 
+  /**
+   * Scans blocks for any attached binary files, image blobs, or file IDs,
+   * and permanently wipes the associated binary entries from the files table
+   * and releases blob URLs / caches to free disk and RAM.
+   */
+  static async purgePageAttachments(pageIds: string[]): Promise<{ filesPurged: number; bytesFreed: number }> {
+    if (!pageIds || pageIds.length === 0) return { filesPurged: 0, bytesFreed: 0 };
+
+    try {
+      // 1. Collect all blocks for the target pages
+      const blocks = await db.blocks.where('pageId').anyOf(pageIds).toArray();
+      const fileIdsToDelete = new Set<string>();
+
+      for (const block of blocks) {
+        if (block.content) {
+          if (block.content.fileId) {
+            fileIdsToDelete.add(block.content.fileId);
+          }
+          // Check if url references internal file
+          if (block.content.url && block.content.url.startsWith('file:')) {
+            const fid = block.content.url.replace('file:', '');
+            if (fid) fileIdsToDelete.add(fid);
+          }
+        }
+      }
+
+      // Also check page covers if stored via internal file reference
+      const pages = await db.pages.where('id').anyOf(pageIds).toArray();
+      for (const page of pages) {
+        if (page.coverUrl && page.coverUrl.startsWith('file:')) {
+          const fid = page.coverUrl.replace('file:', '');
+          if (fid) fileIdsToDelete.add(fid);
+        }
+      }
+
+      let bytesFreed = 0;
+      let filesPurged = 0;
+
+      if (fileIdsToDelete.size > 0) {
+        const fileIdList = Array.from(fileIdsToDelete);
+        const files = await db.files.where('id').anyOf(fileIdList).toArray();
+        bytesFreed = files.reduce((acc, f) => acc + (f.byteSize || 0), 0);
+        filesPurged = files.length;
+        await db.files.where('id').anyOf(fileIdList).delete();
+      }
+
+      return { filesPurged, bytesFreed };
+    } catch (err) {
+      console.error('Error during purgePageAttachments:', err);
+      return { filesPurged: 0, bytesFreed: 0 };
+    }
+  }
+
   static async clearCache(): Promise<void> {
     // Clear temporary cache keys or compact
     if ('caches' in window) {
