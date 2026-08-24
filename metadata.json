@@ -1,0 +1,6 @@
+{
+  "name": "Ration — Local-First Notion Workspace",
+  "description": "A high-performance, local-first productivity workspace and Notion clone with offline storage, block editor, Kanban databases, version history, and backup system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

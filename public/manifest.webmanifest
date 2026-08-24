@@ -1,0 +1,50 @@
+{
+  "name": "Ration - Local-First Workspace",
+  "short_name": "Ration",
+  "description": "Privacy-first, local-first productivity workspace with SQLite engine, block editor, and zero network latency.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f0",
+  "theme_color": "#5a5a40",
+  "orientation": "any",
+  "scope": "/",
+  "categories": ["productivity", "utilities", "business"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Document",
+      "short_name": "New Page",
+      "description": "Create a new document in Ration",
+      "url": "/?action=new",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Quick Search",
+      "short_name": "Search",
+      "description": "Search local documents",
+      "url": "/?action=search",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Templates Library",
+      "short_name": "Templates",
+      "description": "Browse local project templates",
+      "url": "/?action=templates",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}
