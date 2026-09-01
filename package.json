@@ -1,14 +1,54 @@
 {
-  "name": "react-example",
+  "name": "ration",
+  "productName": "Ration",
+  "description": "Local-first workspace for notes, databases, and planning.",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "main": "electron/main.js",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "clean": "rm -rf dist release",
+    "lint": "tsc --noEmit",
+    "start": "electron .",
+    "package:deb": "npm run build && electron-builder --linux deb",
+    "dist": "npm run package:deb"
+  },
+  "build": {
+    "appId": "com.ration.app",
+    "productName": "Ration",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "public/**/*",
+      "package.json",
+      "!**/*.map",
+      "!**/.DS_Store"
+    ],
+    "linux": {
+      "target": [
+        "deb"
+      ],
+      "category": "Utility",
+      "icon": "build"
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnss3",
+        "libxss1",
+        "libasound2",
+        "libdrm2",
+        "libgbm1",
+        "libx11-xcb1",
+        "libxkbfile1"
+      ]
+    }
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -18,21 +58,22 @@
     "canvas-confetti": "^1.9.4",
     "dexie": "^4.4.5",
     "dotenv": "^17.2.3",
+    "electron": "^36.4.0",
     "express": "^4.21.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
-    "react-dom": "^19.0.1",
-    "vite": "^6.2.3"
+    "react-dom": "^19.0.1"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
+    "electron-builder": "^25.1.4",
     "esbuild": "^0.25.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3",
-    "@types/express": "^4.17.21"
+    "vite": "^6.2.3"
   }
 }
