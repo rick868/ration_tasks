@@ -168,6 +168,10 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
   useEffect(() => {
     const initApp = async () => {
       try {
+        // Ask Chromium to keep this device's local workspace data durable.
+        if (navigator.storage?.persist) {
+          await navigator.storage.persist();
+        }
         await seedInitialData();
         const workspaces = await workspaceRepo.getAll();
         const ws = workspaces.length > 0 ? workspaces[0] : null;
