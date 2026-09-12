@@ -2,7 +2,10 @@
   "name": "ration",
   "productName": "Ration",
   "description": "Local-first workspace for notes, databases, and planning.",
-  "author": "rick868",
+  "author": {
+    "name": "rick868",
+    "email": "maintainers@ration.app"
+  },
   "private": true,
   "version": "1.0.0",
   "main": "app/main.js",
@@ -41,8 +44,7 @@
         "AppImage",
         "tar.gz"
       ],
-      "category": "Utility",
-      "icon": "build/icon"
+      "category": "Utility"
     },
     "deb": {
       "depends": [
