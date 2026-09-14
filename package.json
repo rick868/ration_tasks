@@ -17,10 +17,10 @@
     "clean": "rm -rf dist release",
     "lint": "tsc --noEmit",
     "start": "electron .",
-    "package:deb": "npm run clean && npm run build && electron-builder --linux deb",
-    "package:appimage": "npm run clean && npm run build && electron-builder --linux appImage",
-    "package:tar": "npm run clean && npm run build && electron-builder --linux tar.gz",
-    "package:linux": "npm run clean && npm run build && electron-builder --linux deb appImage tar.gz",
+    "package:deb": "npm run clean && npm run build && electron-builder --linux deb --publish never",
+    "package:appimage": "npm run clean && npm run build && electron-builder --linux appImage --publish never",
+    "package:tar": "npm run clean && npm run build && electron-builder --linux tar.gz --publish never",
+    "package:linux": "npm run clean && npm run build && electron-builder --linux deb appImage tar.gz --publish never",
     "dist": "npm run package:linux"
   },
   "build": {
