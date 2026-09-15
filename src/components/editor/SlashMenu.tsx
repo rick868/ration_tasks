@@ -17,6 +17,7 @@ import {
   Table as TableIcon,
   LayoutGrid,
   Bookmark,
+  Kanban,
 } from 'lucide-react';
 import { BlockType } from '../../types';
 
@@ -153,6 +154,14 @@ const SLASH_COMMANDS: SlashItem[] = [
     description: 'Save a visual link preview.',
     category: 'Media & Files',
     icon: <Bookmark className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
+  },
+  {
+    id: 'kanban-board',
+    type: 'database',
+    title: 'Kanban Board',
+    description: 'Create a database page for tracking work in columns.',
+    category: 'Database',
+    icon: <Kanban className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />,
   },
 ];
 

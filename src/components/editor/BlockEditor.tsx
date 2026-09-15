@@ -7,7 +7,7 @@ import { FormattingToolbar } from './FormattingToolbar';
 import { Plus } from 'lucide-react';
 
 export const BlockEditor: React.FC = () => {
-  const { activePage, activeBlocks, updateBlocks, workspace } = useWorkspace();
+  const { activePage, activeBlocks, updateBlocks, workspace, createPage, selectPage } = useWorkspace();
   const [slashMenu, setSlashMenu] = useState<{
     isOpen: boolean;
     position: { top: number; left: number };
@@ -117,11 +117,33 @@ export const BlockEditor: React.FC = () => {
     updateBlocks(activePage.id, newBlocks);
   };
 
-  const handleSlashSelect = (item: SlashItem) => {
+  const handleSlashSelect = async (item: SlashItem) => {
     if (!activePage) return;
     const index = slashMenu.targetBlockIndex;
     const newBlocks = [...activeBlocks];
     const target = newBlocks[index];
+
+    if (item.id === 'kanban-board') {
+      const titleText = (target.content.text || '').replace(/^\//, '').trim();
+      const boardTitle = titleText || 'Kanban Board';
+
+      const createdPage = await createPage(activePage.parentId ?? null, true, boardTitle);
+      selectPage(createdPage.id);
+
+      newBlocks[index] = {
+        ...target,
+        type: 'paragraph',
+        content: {
+          ...target.content,
+          text: '',
+        },
+        updatedAt: Date.now(),
+      };
+
+      await updateBlocks(activePage.id, newBlocks);
+      setSlashMenu((prev) => ({ ...prev, isOpen: false }));
+      return;
+    }
 
     newBlocks[index] = {
       ...target,
