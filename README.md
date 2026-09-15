@@ -32,14 +32,14 @@ npm run dist
 ```
 This creates all Linux release artifacts in the release folder, including:
 
-- Debian package: release/Ration_1.0.1-linux-amd64.deb
-- AppImage: release/Ration_1.0.1-linux-x86_64.AppImage
-- Portable tar.gz: release/Ration_1.0.1-linux-x86_64.tar.gz
+- Debian package: @latestrelease.deb
+- AppImage: @latestrelease.AppImage
+- Portable tar.gz: @latestrelease.tar.gz
 
 Install the Debian package on Debian or Ubuntu with:
 
 ```
-sudo apt install ./Ration_1.0.1-linux-amd64.deb
+sudo apt install ./Ration_1.0.2-linux-amd64.deb
 ```
 
 If dependency errors occur, fix them with:
