@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Smile,
   Image as ImageIcon,
@@ -13,10 +13,12 @@ import {
   ExternalLink,
   ShieldCheck,
   Check,
+  Link2,
 } from 'lucide-react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { IconPicker } from '../common/IconPicker';
 import { CoverPicker } from '../common/CoverPicker';
+import { db } from '../../storage/db';
 
 export const PageHeader: React.FC = () => {
   const {
@@ -30,11 +32,39 @@ export const PageHeader: React.FC = () => {
     setIsExportOpen,
     saveStatus,
     isOffline,
+    pages,
+    selectPage,
   } = useWorkspace();
 
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [backlinkPageIds, setBacklinkPageIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadBacklinks = async () => {
+      if (!activePage?.title.trim()) {
+        setBacklinkPageIds([]);
+        return;
+      }
+
+      const marker = `[[${activePage.title.trim()}]]`.toLowerCase();
+      const blocks = await db.blocks.toArray();
+      const ids = Array.from(new Set(
+        blocks
+          .filter((block) => block.pageId !== activePage.id && (block.content.text || '').toLowerCase().includes(marker))
+          .map((block) => block.pageId)
+      ));
+
+      if (!cancelled) setBacklinkPageIds(ids);
+    };
+
+    loadBacklinks();
+    return () => {
+      cancelled = true;
+    };
+  }, [activePage?.id, activePage?.title, pages]);
 
   if (!activePage) return null;
 
@@ -287,6 +317,29 @@ export const PageHeader: React.FC = () => {
             </div>
           )}
         </div>
+
+        {backlinkPageIds.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            <span className="flex items-center gap-1.5 font-bold uppercase tracking-widest text-[10px] text-[#5a5a40] dark:text-[#a4a485]">
+              <Link2 className="h-3.5 w-3.5" /> Backlinks
+            </span>
+            {backlinkPageIds.map((pageId) => {
+              const page = pages.find((candidate) => candidate.id === pageId);
+              if (!page) return null;
+              return (
+                <button
+                  key={page.id}
+                  type="button"
+                  onClick={() => selectPage(page.id)}
+                  className="inline-flex max-w-full items-center gap-1 rounded-md border border-[#dadad0] bg-[#ecece4] px-2 py-1 font-medium text-[#5a5a40] hover:border-[#a4a485] hover:bg-[#e2e2da] dark:border-[#42423b] dark:bg-[#2c2c28] dark:text-[#c2c2a8]"
+                >
+                  <span>{page.icon || '📄'}</span>
+                  <span className="max-w-48 truncate">{page.title || 'Untitled'}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

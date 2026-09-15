@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { Block, BlockType } from '../../types';
 import { FileStorageManager } from '../../storage/fileManager';
+import { PageLinkChips } from './pageLinks';
+import { useWorkspace } from '../../context/WorkspaceContext';
 
 interface BlockItemProps {
   block: Block;
@@ -45,8 +47,11 @@ export const BlockItem: React.FC<BlockItemProps> = ({
   onOpenSlashMenu,
   workspaceId,
 }) => {
+  const { pages, activePage, selectPage } = useWorkspace();
   const [showMenu, setShowMenu] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [pageLinkMenu, setPageLinkMenu] = useState<{ top: number; left: number; query: string } | null>(null);
+  const [pageLinkIndex, setPageLinkIndex] = useState(0);
   const [isEditingUrl, setIsEditingUrl] = useState(!block.content.url && (block.type === 'image' || block.type === 'bookmark'));
   const inputRef = useRef<HTMLTextAreaElement | HTMLInputElement>(null);
 
@@ -57,6 +62,34 @@ export const BlockItem: React.FC<BlockItemProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    if (pageLinkMenu) {
+      const matches = pages
+        .filter((page) => page.id !== activePage?.id && !page.deletedAt && !page.isArchived)
+        .filter((page) => page.title.toLowerCase().includes(pageLinkMenu.query.toLowerCase()))
+        .slice(0, 8);
+
+      if (e.key === 'ArrowDown' && matches.length > 0) {
+        e.preventDefault();
+        setPageLinkIndex((current) => (current + 1) % matches.length);
+        return;
+      }
+      if (e.key === 'ArrowUp' && matches.length > 0) {
+        e.preventDefault();
+        setPageLinkIndex((current) => (current - 1 + matches.length) % matches.length);
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setPageLinkMenu(null);
+        return;
+      }
+      if (e.key === 'Enter' && matches[pageLinkIndex]) {
+        e.preventDefault();
+        insertPageLink(matches[pageLinkIndex], e.currentTarget);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey && block.type !== 'code') {
       e.preventDefault();
       onAddAfter();
@@ -72,6 +105,20 @@ export const BlockItem: React.FC<BlockItemProps> = ({
         onDelete();
       }
     }
+  };
+
+  const insertPageLink = (page: (typeof pages)[number], target: HTMLTextAreaElement | HTMLInputElement) => {
+    const value = target.value;
+    const cursor = target.selectionStart ?? value.length;
+    const beforeCursor = value.slice(0, cursor);
+    const match = /(^|\s)\[\[([^\[\]]*)$/.exec(beforeCursor);
+    if (!match) return;
+
+    const start = match.index + match[1].length;
+    const nextText = `${value.slice(0, start)}[[${page.title}]]${value.slice(cursor)}`;
+    onUpdate({ content: { ...block.content, text: nextText } });
+    setPageLinkMenu(null);
+    setPageLinkIndex(0);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -124,6 +171,15 @@ export const BlockItem: React.FC<BlockItemProps> = ({
     }
 
     onUpdate({ content: { ...block.content, text: val } });
+    const cursor = e.target.selectionStart ?? val.length;
+    const match = /(^|\s)\[\[([^\[\]]*)$/.exec(val.slice(0, cursor));
+    if (match) {
+      const rect = e.target.getBoundingClientRect();
+      setPageLinkMenu({ top: rect.bottom + 6, left: rect.left, query: match[2] });
+      setPageLinkIndex(0);
+    } else {
+      setPageLinkMenu(null);
+    }
     if (e.target instanceof HTMLTextAreaElement) {
       autoResize(e.target);
     }
@@ -556,7 +612,50 @@ export const BlockItem: React.FC<BlockItemProps> = ({
             )}
           </div>
         )}
+
+        {block.type !== 'code' && block.type !== 'divider' && (
+          <PageLinkChips
+            text={block.content.text || ''}
+            pages={pages}
+            currentPageId={activePage?.id || block.pageId}
+            onNavigate={selectPage}
+          />
+        )}
       </div>
+
+      {pageLinkMenu && (() => {
+        const matches = pages
+          .filter((page) => page.id !== activePage?.id && !page.deletedAt && !page.isArchived)
+          .filter((page) => page.title.toLowerCase().includes(pageLinkMenu.query.toLowerCase()))
+          .slice(0, 8);
+
+        return (
+          <div
+            className="fixed z-[70] w-64 rounded-xl border border-stone-200 bg-white p-1.5 shadow-xl dark:border-stone-700 dark:bg-stone-900"
+            style={{ top: pageLinkMenu.top, left: pageLinkMenu.left }}
+          >
+            <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">Link to page</div>
+            {matches.length > 0 ? matches.map((page, index) => (
+              <button
+                key={page.id}
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => insertPageLink(page, inputRef.current!)}
+                className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs ${
+                  index === pageLinkIndex
+                    ? 'bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-stone-100'
+                    : 'text-stone-600 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-800/60'
+                }`}
+              >
+                <span>{page.icon || '📄'}</span>
+                <span className="truncate">{page.title || 'Untitled'}</span>
+              </button>
+            )) : (
+              <div className="px-2 py-2 text-xs text-stone-400">No matching pages</div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };
