@@ -39,7 +39,7 @@ This creates all Linux release artifacts in the release folder, including:
 Install the Debian package on Debian or Ubuntu with:
 
 ```
-sudo apt install ./Ration_1.0.2-linux-amd64.deb
+sudo apt install ./Ration_1.0.3-linux-amd64.deb
 ```
 
 If dependency errors occur, fix them with:
