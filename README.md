@@ -52,5 +52,3 @@ The package is built for 64-bit Linux and installs on supported Debian and
 Ubuntu releases with their normal Electron runtime libraries. The application
 uses the local user's data directory and does not require a server.
 
-
-The workflow is defined in .github/workflows/release.yml and uploads the generated .deb, .AppImage, and .tar.gz files as release assets.
