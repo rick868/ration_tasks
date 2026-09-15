@@ -10,18 +10,26 @@ may remove that directory, so export or back up your workspace before removal.
 
 ## Run in development
 
+```
 npm install
+```
+```
 npm run dev
+```
 
 ## Build the web app
 
+```
 npm run build
-
+```
 ## Build Linux release artifacts
 
+```
 npm install
+```
+```
 npm run dist
-
+```
 This creates all Linux release artifacts in the release folder, including:
 
 - Debian package: release/Ration_1.0.1-linux-amd64.deb
@@ -30,11 +38,15 @@ This creates all Linux release artifacts in the release folder, including:
 
 Install the Debian package on Debian or Ubuntu with:
 
+```
 sudo dpkg -i release/Ration_1.0.1-linux-amd64.deb
+```
 
 If dependency errors occur, fix them with:
 
+```
 sudo apt-get install -f
+```
 
 The package is built for 64-bit Linux and installs on supported Debian and
 Ubuntu releases with their normal Electron runtime libraries. The application
