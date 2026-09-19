@@ -133,8 +133,8 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
   );
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  }, [setTheme]);
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  }, [setTheme, theme]);
 
   useEffect(() => {
     let savedTheme: 'light' | 'dark' = 'light';
