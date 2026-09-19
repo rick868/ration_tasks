@@ -21,6 +21,7 @@ import {
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PageTreeItem } from './PageTreeItem';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { SidebarCalendar } from './SidebarCalendar';
 
 export const Sidebar: React.FC = () => {
   const {
@@ -154,6 +155,8 @@ export const Sidebar: React.FC = () => {
           <span>Trash Bin</span>
         </button>
       </div>
+
+      <SidebarCalendar />
 
       {/* Pages Navigation Tree */}
       <div className="flex-1 overflow-y-auto px-2 py-1 space-y-4">
