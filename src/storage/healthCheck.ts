@@ -50,8 +50,8 @@ export interface StorageHealthReport {
 }
 
 export class StorageHealthCheckRunner {
-  private static readonly APP_DATA_PATH = '~/.local/share/Ration/ration.db';
-  private static readonly STORAGE_ENGINE = 'SQLite WAL (Tauri / Native) & IndexedDB Dexie Local-First Engine';
+  private static readonly APP_DATA_PATH = 'Browser-managed IndexedDB; Electron uses its per-user Chromium data directory';
+  private static readonly STORAGE_ENGINE = 'Dexie IndexedDB local-first engine';
 
   /**
    * Runs the complete diagnostic suite on the local database and attachment storage.

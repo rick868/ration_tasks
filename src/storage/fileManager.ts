@@ -140,32 +140,37 @@ export class FileStorageManager {
     cacheBytes: number;
     totalFiles: number;
   }> {
-    const files = await db.files.toArray();
+    const [files, pages, blocks, databases, rows, properties, views, tasks, queue, history] = await Promise.all([
+      db.files.toArray(),
+      db.pages.toArray(),
+      db.blocks.toArray(),
+      db.databases.toArray(),
+      db.databaseRows.toArray(),
+      db.databaseProperties.toArray(),
+      db.databaseViews.toArray(),
+      db.tasks.toArray(),
+      db.syncQueue.toArray(),
+      db.pageHistory.toArray(),
+    ]);
     const attachmentsBytes = files.reduce((acc, f) => acc + (f.byteSize || 0), 0);
-
-    const pages = await db.pages.count();
-    const blocks = await db.blocks.count();
-    const rows = await db.databaseRows.count();
-    // Approximate structured database size
-    const databaseBytes = (pages * 1200) + (blocks * 800) + (rows * 1000) + 64000;
-
-    let estimateBytes = 0;
-    if ('storage' in navigator && 'estimate' in navigator.storage) {
-      try {
-        const est = await navigator.storage.estimate();
-        estimateBytes = est.usage || 0;
-      } catch {
-        // fallback
+    const records = [pages, blocks, databases, rows, properties, views, tasks, queue, history];
+    const databaseBytes = new Blob(records.flat().map((record) => JSON.stringify(record))).size;
+    let cacheBytes = 0;
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      for (const name of cacheNames) {
+        const cache = await caches.open(name);
+        const responses = await cache.matchAll();
+        for (const response of responses) {
+          cacheBytes += (await response.clone().blob()).size;
+        }
       }
     }
-
-    const cacheBytes = Math.max(1024 * 1024 * 8, Math.floor(estimateBytes * 0.15));
-    const backupsBytes = Math.floor(attachmentsBytes * 0.4 + databaseBytes * 0.8);
 
     return {
       databaseBytes,
       attachmentsBytes,
-      backupsBytes,
+      backupsBytes: 0,
       cacheBytes,
       totalFiles: files.length,
     };
