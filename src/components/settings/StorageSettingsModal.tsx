@@ -40,10 +40,10 @@ export const StorageSettingsModal: React.FC = () => {
     cacheBytes: number;
     totalFiles: number;
   }>({
-    databaseBytes: 1024 * 1024 * 4,
-    attachmentsBytes: 1024 * 1024 * 18,
-    backupsBytes: 1024 * 1024 * 8,
-    cacheBytes: 1024 * 1024 * 3,
+    databaseBytes: 0,
+    attachmentsBytes: 0,
+    backupsBytes: 0,
+    cacheBytes: 0,
     totalFiles: 0,
   });
 
@@ -210,7 +210,7 @@ export const StorageSettingsModal: React.FC = () => {
                 Storage &amp; Engine Diagnostics
               </h3>
               <p className="text-[11px] text-[#9c9c94]">
-                Local SQLite database, IndexedDB tables, attachment blobs, and health metrics
+                Dexie IndexedDB tables, attachment blobs, browser quota, and health metrics
               </p>
             </div>
           </div>
@@ -374,7 +374,7 @@ export const StorageSettingsModal: React.FC = () => {
                         )}
                       </div>
                       <p className="text-[11px] text-[#9c9c94]">
-                        {healthReport?.storageEngine || 'SQLite WAL / IndexedDB Engine'}
+                        {healthReport?.storageEngine || 'Dexie IndexedDB Engine'}
                       </p>
                     </div>
                   </div>
@@ -520,7 +520,7 @@ export const StorageSettingsModal: React.FC = () => {
                     <div className="rounded-xl border border-[#e5e5df] bg-white p-3 dark:border-[#363630] dark:bg-[#242421]">
                       <div className="text-[10px] uppercase font-bold text-[#9c9c94]">Storage Engine</div>
                       <div className="font-semibold text-[#2c2c2a] dark:text-[#f0f0ea] truncate" title={healthReport.storageEngine}>
-                        SQLite WAL / Dexie IDB
+                        Dexie IndexedDB
                       </div>
                     </div>
                     <div className="rounded-xl border border-[#e5e5df] bg-white p-3 dark:border-[#363630] dark:bg-[#242421]">
