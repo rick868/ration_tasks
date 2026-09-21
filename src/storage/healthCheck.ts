@@ -207,7 +207,7 @@ export class StorageHealthCheckRunner {
                 durationMs: dur,
                 details: `${files.length} attachments tracked (${sizeMb} MB). Found ${invalidFiles} file(s) with missing checksums and ${missingBlobs} missing binary blobs.`,
                 remediation: 'Re-upload missing attachments or prune broken references.',
-                metrics: { totalFiles: files.length, totalBytes, invalidFiles, missingBlobs },
+                metrics: { totalFiles: files.length, totalBytes, invalidFiles, missingBlobs, sizeMb: `${sizeMb} MB` },
               };
             }
 
@@ -215,7 +215,13 @@ export class StorageHealthCheckRunner {
               status: 'passed',
               durationMs: dur,
               details: `${files.length} local attachment(s) verified (${sizeMb} MB). All SHA-256 checksums and binary blobs valid.`,
-              metrics: { totalFiles: files.length, totalBytes, sizeMb: `${sizeMb} MB` },
+              metrics: {
+                totalFiles: files.length,
+                totalBytes,
+                invalidFiles: 0,
+                missingBlobs: 0,
+                sizeMb: `${sizeMb} MB`,
+              },
             };
           } catch (err) {
             return {
@@ -314,7 +320,7 @@ export class StorageHealthCheckRunner {
                 durationMs: dur,
                 details: `Disk quota near capacity: ${percentUsed.toFixed(1)}% used (${usedMb} MB used, ${freeGb} GB free).`,
                 remediation: 'Free up local disk space or clean old attachments.',
-                metrics: { percentUsed, freeGb, isPersisted },
+                metrics: { percentUsed, freeGb, usedMb, isPersisted },
               };
             }
 
