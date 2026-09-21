@@ -107,7 +107,7 @@ export const VersionHistoryModal: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs font-semibold">
-                    <span>{rev.reason || 'Auto-saved Checkpoint'}</span>
+                    <span>{rev.changeSummary || 'Auto-saved Checkpoint'}</span>
                   </div>
                   <div className="flex items-center gap-1 text-[10px] text-[#9c9c94]">
                     <Clock className="h-2.5 w-2.5" />
