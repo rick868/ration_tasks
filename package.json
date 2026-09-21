@@ -7,7 +7,7 @@
     "email": "maintainers@ration.app"
   },
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "app/main.js",
   "type": "module",
   "scripts": {
